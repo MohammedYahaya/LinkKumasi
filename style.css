@@ -1,0 +1,100 @@
+:root{
+  --brand:#0a7d47;
+  --brand-2:#0ecf78;
+  --bg:#f6f8f7;
+  --card:#ffffff;
+  --muted:#64748b;
+  --ink:#0f172a;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+.container{max-width:1080px;margin:0 auto;padding:16px}
+.nav{position:sticky;top:0;background:var(--card);border-bottom:1px solid #e6eef0;z-index:50}
+.nav .row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px}
+.brand{font-weight:800;color:var(--brand);display:flex;align-items:center;gap:8px}
+.searchbar{display:flex;gap:8px;border-radius:14px;overflow:hidden;border:1px solid #e8eef0;padding:6px;background:#fff;min-width:260px}
+.searchbar input{border:0;outline:none;padding:8px;font-size:15px;flex:1}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1px solid #e6eef0;background:transparent;cursor:pointer;font-weight:600}
+.btn.primary{background:var(--brand);color:white;border-color:var(--brand)}
+.lang button{background:#fff;border:1px solid #eef2f1;padding:6px 8px;border-radius:999px;cursor:pointer}
+.lang button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+.hero{padding:28px 0}
+.hero h1{font-size:26px;margin:6px 0}
+.muted{color:var(--muted)}
+.grid{display:grid;gap:14px}
+.grid.cols-2{grid-template-columns:1fr 320px}
+.card{background:var(--card);border-radius:12px;padding:12px;border:1px solid #e8eef0}
+.listing{display:flex;gap:12px;align-items:stretch}
+.listing img{width:140px;height:96px;object-fit:cover;border-radius:10px;border:1px solid #eef2f3}
+.kpi{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{background:#fff;padding:6px 8px;border-radius:10px;border:1px solid #eef2f3;font-size:13px}
+.badge.small{display:inline-block;background:#ecfdf5;color:#065f46;padding:6px 10px;border-radius:999px;font-weight:700;margin-bottom:8px}
+.footer{display:flex;align-items:center;justify-content:space-between;padding:22px 16px;border-top:1px solid #e8eef0;margin-top:28px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:#0f172a;color:#fff;padding:10px 16px;border-radius:10px;display:none}
+@media(min-width:768px){
+  .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+}
+
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.auth-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #e6eef0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.auth-card h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: var(--brand);
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-card input {
+  padding: 12px;
+  border: 1px solid #e8eef0;
+  border-radius: 10px;
+  outline: none;
+  font-size: 15px;
+}
+
+.auth-card button {
+  padding: 12px;
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-card button:hover {
+  background: var(--brand-2);
+}
+
+.auth-card p {
+  text-align: center;
+  font-size: 14px;
+}
+
+.auth-card a {
+  color: var(--brand);
+  text-decoration: none;
+}
+.auth-card a:hover {
+  text-decoration: underline;
+}
