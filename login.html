@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Login • AgriLink</title>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#2b7a0b">
+  <meta name="theme-color" content="#2b7a0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AgriLink">
+<link rel="apple-touch-icon" href="assets/icons/icon-512.png">
+
+
+</head>
+<body>
+  <main class="container" style="padding-top:50px;max-width:400px">
+    <h2 style="text-align:center;margin-bottom:24px">AgriLink Login</h2>
+    <form id="loginForm" class="card" style="padding:16px">
+      <label>Email</label>
+      <input type="email" id="loginEmail" required placeholder="you@example.com">
+      <label>Password</label>
+      <input type="password" id="loginPassword" required placeholder="••••••">
+      <button type="submit" class="btn primary" style="margin-top:14px">Login</button>
+      <p class="muted" style="margin-top:8px;text-align:center">
+        No account? <a href="register.html">Register here</a>
+      </p>
+    </form>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="assets/js/lang.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+  document.getElementById('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const email = loginEmail.value.trim();
+    const pass = loginPassword.value.trim();
+    if(!email || !pass) return showToast('Please fill in all fields');
+    if(!/^[^@]+@[^@]+\.[^@]+$/.test(email)) return showToast('Invalid email address');
+    // TODO: replace with PHP/MySQL login request
+    console.log('Logging in with', {email, pass});
+    showToast('Login success (demo)');
+    window.location.href = 'buyer-dashboard.html';
+  });
+  </script>
+</body>
+</html>

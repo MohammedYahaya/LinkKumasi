@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Register • AgriLink</title>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#2b7a0b">
+
+</head>
+<body>
+  <main class="container" style="padding-top:30px;max-width:500px">
+    <h2 style="text-align:center;margin-bottom:24px">Create AgriLink Account</h2>
+    <form id="regForm" class="card" style="padding:16px">
+      <label>Full Name</label>
+      <input type="text" id="fullName" required placeholder="Your full name">
+
+      <label>Email</label>
+      <input type="email" id="regEmail" required placeholder="you@example.com">
+
+      <label>Password</label>
+      <input type="password" id="regPassword" required placeholder="••••••">
+
+      <label>Phone Number</label>
+      <input type="tel" id="phone" required placeholder="e.g., 024xxxxxxx">
+
+      <label>Location</label>
+      <input type="text" id="location" value="Kumasi" required>
+
+      <label>ID Type</label>
+      <select id="idType" required>
+        <option value="">Select</option>
+        <option value="Ghana Card">Ghana Card</option>
+        <option value="Voter ID">Voter ID</option>
+        <option value="Passport">Passport</option>
+      </select>
+
+      <label>ID Number</label>
+      <input type="text" id="idNumber" required placeholder="Enter ID number">
+
+      <button type="submit" class="btn primary" style="margin-top:14px">Register</button>
+      <p class="muted" style="margin-top:8px;text-align:center">
+        Already have an account? <a href="login.html">Login here</a>
+      </p>
+    </form>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="assets/js/lang.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+  document.getElementById('regForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const name = fullName.value.trim();
+    const email = regEmail.value.trim();
+    const pass = regPassword.value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const loc = location.value.trim();
+    const idT = idType.value;
+    const idN = idNumber.value.trim();
+
+    if(!name || !email || !pass || !phone || !loc || !idT || !idN)
+      return showToast('Please complete all fields');
+    if(!/^[^@]+@[^@]+\.[^@]+$/.test(email))
+      return showToast('Invalid email format');
+
+    // TODO: replace with PHP/MySQL registration request
+    console.log('Registering', {name,email,pass,phone,loc,idT,idN});
+    showToast('Registration successful (demo)');
+    window.location.href = 'login.html';
+  });
+  </script>
+</body>
+</html>

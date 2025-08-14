@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Browse • AgriLink</title>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#2b7a0b">
+
+</head>
+<body>
+  <header class="nav">
+    <div class="container row">
+      <a class="brand" href="index.html">🌿 AgriLink</a>
+
+      <div style="flex:1;margin:0 12px">
+        <div class="searchbar">
+          <input id="q" placeholder="tomatoes, aburoo, borɔdeɛ..." data-i18n-placeholder="search_placeholder"/>
+          <button class="btn" id="searchBtn" data-i18n="browse">Browse</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="lang">
+          <button data-setlang="en">EN</button>
+          <button data-setlang="tw">TWI</button>
+        </div>
+        <a class="btn" href="login.html" data-i18n="login">Login</a>
+        <a class="btn primary" href="register.html" data-i18n="register">Register</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top:16px">
+    <div class="card">
+      <h3>Filters</h3>
+      <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div>
+          <label>Category</label>
+          <select id="filterCategory">
+            <option value="">All</option>
+            <option>Vegetables</option>
+            <option>Roots</option>
+            <option>Fruits</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Max Price (GHS)</label>
+          <input id="filterMaxPrice" type="number" min="0" placeholder="e.g., 60">
+        </div>
+
+        <div>
+          <label>Sort by</label>
+          <select id="sortBy">
+            <option value="klrr">Kumasi relevance (KLRR)</option>
+            <option value="price_asc">Price: Low → High</option>
+            <option value="price_desc">Price: High → Low</option>
+            <option value="fresh">Freshness</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+        <button class="btn" id="applyFilters">Apply</button>
+        <button class="btn" id="resetFilters">Reset</button>
+        <div class="muted" style="margin-left:auto">Showing results within <strong>Kumasi</strong></div>
+      </div>
+    </div>
+
+    <div style="height:12px"></div>
+
+    <section id="results" class="grid"></section>
+
+    <div style="display:flex;justify-content:center;margin-top:16px;gap:8px;align-items:center">
+      <button class="btn" id="prevPage">Prev</button>
+      <div id="pageInfo" class="muted">Page 1</div>
+      <button class="btn" id="nextPage">Next</button>
+    </div>
+  </main>
+
+  <footer class="footer container">
+    <div>
+      <strong>AgriLink • Kumasi</strong>
+      <p class="muted">Kumasi-first pilot — built to scale globally later.</p>
+    </div>
+    <div class="muted">Contact: support@agrilink.local</div>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="assets/js/lang.js"></script>
+  <script src="assets/js/algorithms.js"></script>
+  <script src="assets/js/app.js"></script>
+
+  <script>
+    // Browse page logic (uses global 'listings' & 'ctx' from app.js)
+    (function(){
+      const perPage = 6;
+      let page = 1;
+      let current = listings.slice(); // initial copy
+
+      // Helpers
+      function applyFiltersAndSort(){
+        const cat = document.getElementById('filterCategory').value;
+        const maxPrice = Number(document.getElementById('filterMaxPrice').value || Infinity);
+        const sortBy = document.getElementById('sortBy').value;
+        // Filter (Kumasi-only enforced here; listings already Kumasi demo)
+        let out = listings.filter(l => {
+          if(cat && l.category !== cat) return false;
+          if(l.price > maxPrice) return false;
+          return true;
+        });
+
+        // Scoring: compute KLRR for each listing (for sorting & display)
+        out = out.map(l => ({ l, score: AgriAlgo.klrr(l, ctx), freshness: Math.exp(-((Date.now()-new Date(l.createdAt))/86400000)/14) }));
+
+        if(sortBy === 'klrr'){
+          out.sort((a,b) => b.score - a.score);
+        } else if(sortBy === 'price_asc'){
+          out.sort((a,b) => a.l.price - b.l.price);
+        } else if(sortBy === 'price_desc'){
+          out.sort((a,b) => b.l.price - a.l.price);
+        } else if(sortBy === 'fresh'){
+          out.sort((a,b) => b.freshness - a.freshness);
+        }
+
+        current = out.map(x => x.l);
+        page = 1;
+        renderPage();
+      }
+
+      function renderPage(){
+        const start = (page-1)*perPage;
+        const end = start + perPage;
+        const pageItems = current.slice(start, end);
+        const results = document.getElementById('results');
+        if(!results) return;
+        if(pageItems.length === 0){
+          results.innerHTML = '<div class="card">No results — try widening filters.</div>';
+        } else {
+          results.innerHTML = pageItems.map(x => {
+            const fri = Math.round(AgriAlgo.farmerReliability(x.farmerStats || {})*100);
+            const rank = AgriAlgo.klrr(x, ctx).toFixed(2);
+            return `
+              <article class="card listing">
+                <img src="${x.photo}" alt="${x.title}">
+                <div style="flex:1">
+                  <div style="display:flex;justify-content:space-between;align-items:start">
+                    <div>
+                      <strong>${x.title}</strong>
+                      <div class="muted" style="font-size:13px">${x.category} • Kumasi</div>
+                    </div>
+                    <div style="text-align:right">
+                      <div style="font-weight:800">GHS ${x.price}</div>
+                      <div class="chip muted">Rank ${rank}</div>
+                    </div>
+                  </div>
+                  <p class="muted" style="margin:8px 0">${x.description}</p>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <a class="btn" href="product.html?id=${x.id}">Details</a>
+                    <button class="btn primary" onclick="showToast('Added to cart (demo)')">Add to Order</button>
+                    <div class="chip">Trust ${fri}%</div>
+                  </div>
+                </div>
+              </article>
+            `;
+          }).join('');
+        }
+
+        const totalPages = Math.max(1, Math.ceil(current.length / perPage));
+        document.getElementById('pageInfo').textContent = `Page ${page} of ${totalPages} — ${current.length} results`;
+        document.getElementById('prevPage').disabled = page <= 1;
+        document.getElementById('nextPage').disabled = page >= totalPages;
+      }
+
+      // Event listeners
+      document.getElementById('applyFilters').addEventListener('click', applyFiltersAndSort);
+      document.getElementById('resetFilters').addEventListener('click', () => {
+        document.getElementById('filterCategory').value = '';
+        document.getElementById('filterMaxPrice').value = '';
+        document.getElementById('sortBy').value = 'klrr';
+        applyFiltersAndSort();
+      });
+
+      document.getElementById('prevPage').addEventListener('click', () => { if(page>1) page--; renderPage(); });
+      document.getElementById('nextPage').addEventListener('click', () => { page++; renderPage(); });
+
+      // Wire search input to doSearch (app.js)
+      const s = document.getElementById('q');
+      s.addEventListener('input', () => {
+        if(!s.value.trim()){ applyFiltersAndSort(); return; }
+        // Search gives priority to search score then KLRR
+        const scored = listings.map(l => ({l, searchScore: AgriAlgo.searchScore(l, s.value.trim()), klrr: AgriAlgo.klrr(l, ctx)}))
+                               .filter(x => x.searchScore > 0)
+                               .sort((a,b) => (b.searchScore - a.searchScore) * 10 + (b.klrr - a.klrr));
+        current = scored.map(x => x.l);
+        page = 1;
+        renderPage();
+      });
+
+      // Initialize page content
+      applyFiltersAndSort();
+    })();
+  </script>
+</body>
+</html>

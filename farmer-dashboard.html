@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Farmer Dashboard • AgriLink</title>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#2b7a0b">
+
+</head>
+<body>
+  <header class="nav">
+    <div class="container row">
+      <a class="brand" href="index.html">🌿 AgriLink</a>
+      <div style="flex:1"></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a class="btn" href="browse.html" data-i18n="browse">Browse</a>
+        <div class="lang">
+          <button data-setlang="en">EN</button>
+          <button data-setlang="tw">TWI</button>
+        </div>
+        <a class="btn" href="logout.html" data-i18n="logout">Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top:16px">
+    <h2 data-i18n="farmer_dashboard">Farmer Dashboard</h2>
+
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px">
+      <div class="card">
+        <h4>Total Orders</h4>
+        <p style="font-size:22px;font-weight:800" id="totalOrders">—</p>
+      </div>
+      <div class="card">
+        <h4>Revenue (GHS)</h4>
+        <p style="font-size:22px;font-weight:800" id="revenue">—</p>
+      </div>
+      <div class="card">
+        <h4>Trust Score</h4>
+        <p style="font-size:22px;font-weight:800" id="trustScore">—%</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>My Listings</h3>
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="border-bottom:1px solid #ddd">
+            <th align="left">Product</th>
+            <th>Price</th>
+            <th>Price Band Hint</th>
+            <th>Risk</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="myListings"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer class="footer container">
+    <div>
+      <strong>AgriLink • Kumasi</strong>
+      <p class="muted">Empowering farmers with data-driven insights.</p>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="assets/js/lang.js"></script>
+  <script src="assets/js/algorithms.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    (function(){
+      // Mock: pick logged-in farmer (we'll replace with PHP session later)
+      const farmerId = 1;
+      const my = listings.filter(l => l.farmerId === farmerId);
+
+      // Stats
+      const totalOrders = my.reduce((sum, l) => sum + (l.orders || 0), 0);
+      const revenue = my.reduce((sum, l) => sum + (l.orders || 0) * l.price, 0);
+      const trust = Math.round(AgriAlgo.farmerReliability({ delivered: my.reduce((a,b)=>a+(b.delivered||0),0), disputes: my.reduce((a,b)=>a+(b.disputes||0),0) })*100);
+
+      document.getElementById('totalOrders').textContent = totalOrders;
+      document.getElementById('revenue').textContent = revenue.toFixed(2);
+      document.getElementById('trustScore').textContent = trust;
+
+      // Table rows
+      const tbody = document.getElementById('myListings');
+      tbody.innerHTML = my.map(l => {
+        const band = AgriAlgo.priceBandHint(l, listings);
+        const risk = AgriAlgo.integrityRisk(l, listings) > 0.6 ? "⚠ High" : "✅ Low";
+        return `
+          <tr style="border-bottom:1px solid #eee">
+            <td>${l.title}</td>
+            <td>GHS ${l.price}</td>
+            <td><span class="chip">${band}</span></td>
+            <td>${risk}</td>
+            <td>
+              <button class="btn" onclick="showToast('Edit ${l.title} (demo)')">Edit</button>
+              <button class="btn" onclick="showToast('Delete ${l.title} (demo)')">Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Buyer Dashboard • AgriLink</title>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#2b7a0b">
+
+</head>
+<body>
+  <header class="nav">
+    <div class="container row">
+      <a class="brand" href="index.html">🌿 AgriLink</a>
+      <div style="flex:1"></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a class="btn" href="browse.html" data-i18n="browse">Browse</a>
+        <div class="lang">
+          <button data-setlang="en">EN</button>
+          <button data-setlang="tw">TWI</button>
+        </div>
+        <a class="btn" href="logout.html">Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top:16px">
+    <h2 data-i18n="buyerDash">Buyer Dashboard</h2>
+
+    <div class="grid cols-2" style="gap:12px;margin-bottom:14px">
+      <div class="card">
+        <h4>My Orders & Offers</h4>
+        <table class="table" style="margin-top:8px">
+          <thead><tr><th>Item</th><th>Offer (GHS)</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="offersTbl"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h4>Saved Searches</h4>
+        <div id="savedSearches"></div>
+        <hr style="margin:10px 0;border-top:1px solid #eef2f3">
+        <h4>Watchlist</h4>
+        <div id="watchlist"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Recommended for you (Kumasi-first)</h3>
+      <div id="recommendations" class="grid"></div>
+    </div>
+  </main>
+
+  <footer class="footer container">
+    <div>
+      <strong>AgriLink • Kumasi</strong>
+      <p class="muted">Local-first recommendations and negotiation assistant.</p>
+    </div>
+    <div class="muted">Contact: support@agrilink.local</div>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="assets/js/lang.js"></script>
+  <script src="assets/js/algorithms.js"></script>
+  <script src="assets/js/app.js"></script>
+
+  <script>
+  (function(){
+    // Mock buyer state
+    const buyerId = 99;
+    // Mock saved searches & watchlist
+    const savedSearches = [
+      { id:1, query: 'aburoo', note: 'Maize deals under GHS 40' },
+      { id:2, query: 'tomato', note: 'Fresh tomatoes' }
+    ];
+    const watchlistIds = [2]; // listing ids
+
+    // Mock offers (would be stored server-side later)
+    const offers = [
+      { id: 1, listingId: 1, offer: 28, status: 'Countered', counter: 30 },
+      { id: 2, listingId: 3, offer: 34, status: 'Accepted' }
+    ];
+
+    // Render saved searches
+    const ss = document.getElementById('savedSearches');
+    ss.innerHTML = savedSearches.map(s => `
+      <div class="chip" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div><strong>${s.query}</strong><div class="muted" style="font-size:12px">${s.note}</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn" onclick="applySaved('${s.query}')">Apply</button>
+          <button class="btn" onclick="showToast('Deleted saved search (demo)')">Delete</button>
+        </div>
+      </div>
+    `).join('');
+
+    // Render watchlist
+    function renderWatchlist(){
+      const wr = document.getElementById('watchlist');
+      const items = listings.filter(l => watchlistIds.includes(l.id));
+      if(items.length === 0) wr.innerHTML = '<div class="muted">No items in watchlist</div>';
+      else wr.innerHTML = items.map(i => `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div>
+            <strong>${i.title}</strong>
+            <div class="muted" style="font-size:12px">${i.category} • GHS ${i.price}</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <a class="btn" href="product.html?id=${i.id}">View</a>
+            <button class="btn" onclick="removeFromWatch(${i.id})">Remove</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Render offers table
+    function renderOffers(){
+      const tb = document.getElementById('offersTbl');
+      tb.innerHTML = offers.map(o => {
+        const item = listings.find(l => l.id === o.listingId) || {title:'(unknown)', price:0};
+        const counterHtml = o.counter ? ` (counter: GHS ${o.counter})` : '';
+        return `<tr><td>${item.title}</td><td>GHS ${o.offer}${counterHtml}</td><td>${o.status}</td>
+                <td>
+                  <button class="btn" onclick="makeCounter(${o.listingId}, ${o.id})">Auto Counter</button>
+                </td></tr>`;
+      }).join('');
+    }
+
+    // Recommendations: KLRR-sorted top 6 excluding watchlist
+    function renderRecommendations(){
+      const rec = document.getElementById('recommendations');
+      const candidates = listings.filter(l => true); // filter to Kumasi if needed
+      const ranked = candidates.slice().sort((a,b) => AgriAlgo.klrr(b, ctx) - AgriAlgo.klrr(a, ctx)).slice(0,6);
+      rec.innerHTML = ranked.map(r => `
+        <article class="card listing" style="align-items:stretch">
+          <img src="${r.photo}" alt="${r.title}">
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between">
+              <div><strong>${r.title}</strong><div class="muted" style="font-size:13px">${r.category}</div></div>
+              <div style="text-align:right"><div style="font-weight:800">GHS ${r.price}</div><div class="chip muted">Rank ${AgriAlgo.klrr(r,ctx).toFixed(2)}</div></div>
+            </div>
+            <p class="muted" style="margin:8px 0">${r.description}</p>
+            <div style="display:flex;gap:8px">
+              <a class="btn" href="product.html?id=${r.id}">Details</a>
+              <button class="btn" onclick="addToWatch(${r.id})">${watchlistIds.includes(r.id)? 'Watched':'Watch'}</button>
+              <button class="btn primary" onclick="quickOffer(${r.id}, ${r.price})">Offer</button>
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    // Small helpers bound to window for demo actions
+    window.applySaved = function(q){
+      document.getElementById('q').value = q;
+      const ev = new Event('input'); document.getElementById('q').dispatchEvent(ev);
+      showToast('Applied saved search: ' + q);
+    };
+
+    window.addToWatch = function(id){
+      if(!watchlistIds.includes(id)) watchlistIds.push(id);
+      renderWatchlist();
+      renderRecommendations();
+      showToast('Added to watchlist');
+    };
+
+    window.removeFromWatch = function(id){
+      const i = watchlistIds.indexOf(id); if(i>=0) watchlistIds.splice(i,1);
+      renderWatchlist(); renderRecommendations();
+      showToast('Removed from watchlist');
+    };
+
+    window.quickOffer = function(listingId, listPrice){
+      const offer = prompt('Your offer (GHS)', Math.round(listPrice*0.9));
+      if(!offer) return;
+      const newOffer = { id: Date.now(), listingId, offer: Number(offer), status: 'Pending' };
+      offers.unshift(newOffer);
+      renderOffers();
+      showToast('Offer submitted (demo)');
+    };
+
+    window.makeCounter = function(listingId, offerId){
+      const offerObj = offers.find(o => o.id === offerId);
+      const listing = listings.find(l => l.id === listingId);
+      if(!offerObj || !listing){ showToast('Missing data'); return; }
+      const band = AgriAlgo.suggestPriceBand({median: ctx.medians[listing.category] || listing.price, q1:ctx.medians[listing.category]*0.85, q3:ctx.medians[listing.category]*1.15, demandIndex:1}, listing);
+      const counter = AgriAlgo.counterOffer(offerObj.offer, listing.price, band, { listingCreated: listing.createdAt, stockLeft: 8, initialStock: 12 });
+      offerObj.counter = counter;
+      offerObj.status = 'Countered';
+      renderOffers();
+      showToast('Counter suggested: GHS ' + counter);
+    };
+
+    // Init renders
+    renderWatchlist();
+    renderOffers();
+    renderRecommendations();
+  })();
+  </script>
+</body>
+</html>

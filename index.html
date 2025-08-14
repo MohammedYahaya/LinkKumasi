@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AgriLink • Kumasi</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <meta name="theme-color" content="#0a7d47">
+</head>
+<body>
+  <header class="nav">
+    <div class="container row">
+      <a class="brand" href="index.html">🌿 AgriLink</a>
+      <div class="center">
+        <div class="searchbar">
+          <input id="q" placeholder="Search..." data-i18n-placeholder="search_placeholder" />
+          <button class="btn" id="searchBtn" data-i18n="browse">Browse</button>
+        </div>
+      </div>
+      <div class="right">
+        <div class="lang">
+          <button data-setlang="en">EN</button>
+          <button data-setlang="tw">TWI</button>
+        </div>
+        <a class="btn" href="login.html" data-i18n="login">Login</a>
+        <a class="btn primary" href="register.html" data-i18n="register">Register</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <div class="badge small">📍 <span data-i18n="kumasiOnly">Kumasi only (pilot)</span></div>
+      <h1 data-i18n="welcome">Welcome to AgriLink</h1>
+      <p class="muted" data-i18n="subtitle">Kumasi’s smart marketplace for fresh farm produce</p>
+
+      <div class="kpi">
+        <div class="chip">PWA-ready</div>
+        <div class="chip">EN / TWI</div>
+        <div class="chip">Smart ranking & pricing</div>
+      </div>
+    </section>
+
+    <section class="container">
+      <h3 data-i18n="featured">Featured near you</h3>
+      <div id="listings" class="grid"></div>
+    </section>
+  </main>
+
+  <footer class="footer container">
+    <div>
+      <strong>AgriLink • Kumasi</strong>
+      <p class="muted">Kumasi-first pilot — built to scale globally later.</p>
+    </div>
+    <div class="muted">Contact: support@agrilink.local</div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/js/lang.js"></script>
+  <script src="assets/js/algorithms.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
